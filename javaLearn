@@ -1,0 +1,25 @@
+Java提供了两类的异常:runtime exception(unchecked exception)和checked exception.
+checked exception也就是我们经常遇到的IO异常，以及SQL异常都是这种异常。对于这种异常，Java编译器强制要求我们必须通过try...catch...或throws进行处理。
+Spring中@Transactional注解默认只对unchecked Exception或RunTimeException异常进行回滚,对于checked Exception异常不进行回滚。不过，我们可以通过@Transactional注解的norollbackFor属性，使得spring事务不对某些异常进行回滚，例如，让事务对unchecked Exception和RuntimeException异常不进行回滚，同时，也可以通过@Transactional注释的rollbackFor属性，使得spring事务对某些异常进行回滚，即通过rollbackFor=Exception.class,使得事务对checked Exception异常也进行回滚。
+二、缓存
+1、hibernate缓存
+hibernate缓存包括两大类：hibernate一级缓存和hibernate二级缓存。
+1.1Hibernate 一级缓存又称为“Session的缓存”
+Session内置不能被卸载，Session的缓存是事务范围的缓存（Session对象的生命周期通常对应一个数据库事务或一个应用事务）。一级缓存中，持久化类的每一个实例对象具有唯一的OID。
+1.2Hibernate二级缓存又称为“SessionFactory的缓存”。
+由于SessionFactory对象的生命周期和应用程序的整个过程对应，因此Hibernate二级缓存是进程范围或者集群范围的缓存，有可能出现并发问题，因此需要采用适当的并发访问策略，该策略为被缓存的数据提供了事务隔离级别。
+第二级缓存是可选的，是一个可配置的插件，默认下SessionFactory不会启用这个插件。Hibernate提供了org.hibernate.cache.CacheProvider接口，它充当缓存插件与Hibernate之间的适配器。
+什么样的数据适合存放到第二级缓存中？
+1）很少被修改的数据
+2）不是很重要的数据，允许出现偶尔并发的数据
+3）不会被并发访问的数据
+4）常量数据
+不适合存放到第二级缓存的数据？
+1）经常被修改的数据
+2）绝对不会出现并发访问的数据，如财务数据，绝对不允许出现并发访问
+3）与其他应用共享的数据
+1.3Session的延迟加载实现要解决两个问题：正常关闭连接和确保请求中访问的是同一个session。
+Hibernate session就是java.sql.Connection的一层高级封装，一个session对应了一个Connection。
+HTTP请求结束后正确的关闭session（过滤器实现了session的正常关闭）；延迟加载必须保证是同一个session（session绑定在ThreadLocal）。
+1.4Hibernate查找对象如何应用缓存？
+当Hibernate根据ID访问数据库对象的时候，首先从session一级缓存中查找，找不到，如果配置了二级缓存，那么从二级缓存中查找。
